@@ -1,0 +1,5 @@
+import database.series_table
+import database.book_table
+import database.word_table
+import database.chapter_table
+from database.connection import connect_to_database
