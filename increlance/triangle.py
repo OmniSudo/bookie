@@ -195,16 +195,19 @@ class Triangle:
         elif split[0].startswith(".") and len(split[0]) == 1:
             return self.get(split[1:])
 
-        if self.data is not None and len(self.data) > 0 and split[0].split('?')[0] in self.data:
+        var = split[0].split('?')[0]
+        if hasattr( self, var ):
+            return self.invoke(getattr(self, var), split)
+        if self.data is not None and len(self.data) > 0 and var in self.data:
             return self.invoke(self.data, split)
 
-        if (split[0] == self.index['c']) or (self.center_child is not None and split[0] == self.center_child.uuid):
+        if (split[0] == self.index['c']) or (self.center_child is not None and (split[0] == self.center_child.uuid or split[0] == self.center_child.name)):
             return self.center_child.get(split[1:])
-        elif (split[0] == self.index['u']) or (self.top_child is not None and split[0] == self.top_child.uuid):
+        elif (split[0] == self.index['u']) or (self.top_child is not None and (split[0] == self.top_child.uuid or split[0] == self.top_child.name)):
             return self.top_child.get(split[1:])
-        elif (split[0] == self.index['r']) or (self.right_child is not None and split[0] == self.right_child.uuid):
+        elif (split[0] == self.index['r']) or (self.right_child is not None and (split[0] == self.right_child.uuid or split[0] == self.right_child.name)):
             return self.right_child.get(split[1:])
-        elif (split[0] == self.index['l']) or (self.left_child is not None and split[0] == self.left_child.uuid):
+        elif (split[0] == self.index['l']) or (self.left_child is not None and (split[0] == self.left_child.uuid or split[0] == self.left_child.name)):
             return self.left_child.get(split[1:])
         else:
             return None
@@ -214,13 +217,15 @@ class Triangle:
         name = split[0]
         args = split[1] if len(split) > 1 else None
 
-        if name in self.data:
-            data = self.data[name]
-            if type(data) is Triangle:
-                return data.get(split[1:])
-            elif isinstance(data, types.FunctionType):
-                args = args.split(',')  # i='j'
-                kwargs = {}
+        if type(data) is Triangle:
+            if self.data is not None and name in self.data:
+                data = self.data[name]
+
+        if isinstance(data, types.FunctionType) or isinstance(data, types.MethodType):
+            kwargs = {}
+
+            if args is not None and len(args) > 0:
+                args = args.split('&')  # i='j'
                 i = 0
                 while i < len(args):
                     if len(args[i]) == 0:
@@ -232,22 +237,26 @@ class Triangle:
                         while i < len(args) and not (
                                 var[1].endswith(var[1][0]) and not var[1].endswith('\\' + var[1][0])
                         ):
-                            var = [var[0], var[1] + ',' + args[i + 1]]
+                            var = [var[0], var[1] + '&' + args[i + 1]]
                             i += 1
-                        i += 1
 
                         if not var[1].endswith(var[1][0]):
                             return None
 
                         var[1] = var[1][1:-1]
+                    i += 1
                     kwargs[var[0].strip()] = (var[1])  # TODO: root lookup object
 
-                ret = data(**kwargs)  # TODO: Process with mind
-                if type(ret) is Triangle:
-                    return ret.get(split[1:])
-                elif len(split[2:]) == 0:
-                    return ret
-                else:
-                    return None
+            ret = data(**kwargs)  # TODO: Process with mind
+            if type(ret) is Triangle:
+                return ret.get(split[1:])
+            elif len(split[2:]) == 0:
+                return ret
+            else:
+                return None
         else:
-            return data if len(split) == 1 else None
+            if len(split) == 1:
+                return data
+            elif isinstance(data, Triangle):
+                return data.get(split[1:])
+        return None
