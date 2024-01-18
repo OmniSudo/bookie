@@ -111,7 +111,7 @@ class Triangle:
         except Exception:
             pass
 
-        return self.uuid == other.uuid
+        return self is other or self.uuid == other.uuid
 
     def root(self) -> Triangle:
         """
@@ -126,9 +126,10 @@ class Triangle:
             root_triangle = triangle.root()
             root_triangle == parent
         """
-        if self.parent is None or self.uuid == None or self.parent.__eq__(self):
-            return self
-        return self.parent.root()
+        parent = self
+        while parent.parent is not None and parent.parent is not parent:
+            parent = parent.parent
+        return parent
 
     def get(self, arg: str | list[str]) -> object | None:
         """

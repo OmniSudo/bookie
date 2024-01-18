@@ -1,9 +1,14 @@
 from increlance.triangle import Triangle
+import sqlite3 as sql
 
 
 class Database(Triangle):
-    def __init__(self, root: Triangle):
+    connection: sql.Connection = None
+
+    def __init__(self, soul: Triangle):
         super().__init__(
-            root,
+            soul,
             self.__class__.__name__
         )
+        self.connection = sql.connect('increlance.db')
+
