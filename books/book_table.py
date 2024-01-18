@@ -1,6 +1,6 @@
 import os
 
-from database.connection import connect_to_database
+from books.connection import connect_to_database
 
 
 def create(db):
