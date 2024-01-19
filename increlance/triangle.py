@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import importlib
-import os
+from inspect import signature
 import uuid as uuid
 import types
 
@@ -10,7 +9,7 @@ class Triangle:
     name: str = None
     uuid: uuid
     parent: Triangle = None
-    data: map = None
+    data: dict = {}
     index: dict = {
         'c': 'c',
         'u': 'u',
@@ -69,7 +68,7 @@ class Triangle:
                 'l': 'l'
             },
             uuid: uuid = None,
-            data: map = None,
+            data: dict =None,
     ):
         """
         Constructor method for initializing an instance of the class.
@@ -81,6 +80,10 @@ class Triangle:
             index (map, optional): Mapping of index values. Defaults to {'c': 'c', 'u': 'u', 'r': 'r', 'l': 'l'}.
             uuid (uuid, optional): Unique identifier for the instance. Defaults to None.
         """
+        if data is None:
+            data = dict()
+        if data is None:
+            data = {}
         self.uuid = uuid
         self.name = name
 
@@ -92,7 +95,7 @@ class Triangle:
                 self.index[i] = index[i]
 
         self.parent = parent
-        self.data = data
+        self.data = data if data is not None else self.data
 
     def __eq__(self, other):
         """
@@ -131,7 +134,7 @@ class Triangle:
             parent = parent.parent
         return parent
 
-    def get(self, arg: str | list[str]) -> object | None:
+    def get(self, arg: str | list[str]) -> Triangle | types.FunctionType | object | None:
         """
         Get the Triangle object based on the given argument.
 
@@ -152,6 +155,7 @@ class Triangle:
         elif isinstance(arg, list):
             return self.__get_array__(arg)
         else:
+            # TODO: Log that no method for getting passed path exists
             return None
 
     def __get_split__(self, path) -> object | None:
@@ -190,6 +194,7 @@ class Triangle:
             return self
         if len(split[0]) == 0:
             split = split[1:]
+            return self.__get_array__(split)
 
         if split[0].startswith("..") and len(split[0]) == 2:
             return self.parent.get(split[1:]) if self.parent is not None else None
@@ -197,10 +202,10 @@ class Triangle:
             return self.get(split[1:])
 
         var = split[0].split('?', 1)[0]
-        if hasattr( self, var ):
+        if hasattr(self, var):
             return self.invoke(getattr(self, var), split)
         if self.data is not None and len(self.data) > 0 and var in self.data:
-            return self.invoke(self.data, split)
+            return self.invoke(self.data[var], split[1:])
 
         if (split[0] == self.index['c']) or (self.center_child is not None and (split[0] == self.center_child.uuid or split[0] == self.center_child.name)):
             return self.center_child.get(split[1:])
@@ -211,6 +216,7 @@ class Triangle:
         elif (split[0] == self.index['l']) or (self.left_child is not None and (split[0] == self.left_child.uuid or split[0] == self.left_child.name)):
             return self.left_child.get(split[1:])
         else:
+            # TODO: Log that no matching path could be found
             return None
 
     def invoke(self, data, split) -> object | None:
@@ -218,9 +224,8 @@ class Triangle:
         name = split[0]
         args = split[1] if len(split) > 1 else None
 
-        if type(data) is Triangle:
-            if self.data is not None and name in self.data:
-                data = self.data[name]
+        if isinstance(data, Triangle):
+            return data.__get_array__(split)
 
         if isinstance(data, types.FunctionType) or isinstance(data, types.MethodType):
             kwargs = {}
@@ -233,6 +238,7 @@ class Triangle:
                         continue
                     var = args[i].split('=',1)
                     if len(var) != 2:
+                        # TODO: Log that arg does not have a value
                         return None
                     if var[1].startswith('\'') or var[1].startswith('\"'):
                         while i < len(args) and not (
@@ -242,6 +248,7 @@ class Triangle:
                             i += 1
 
                         if not var[1].endswith(var[1][0]):
+                            # TODO: Log that string does not have a terminating ' or "
                             return None
 
                         var[1] = var[1][1:-1]
@@ -250,7 +257,13 @@ class Triangle:
 
             ret = None
             try:
-                ret = data(**kwargs)  # TODO: Process with mind
+                argc = len(signature(data).parameters)
+                if argc == 0 and len(kwargs) == 0:
+                    ret = data()
+                elif argc != 0 and len(kwargs) == 0:
+                    return data
+                else:
+                    ret = data(**kwargs)
             except Exception as e:
                 print(f"Failed to invoke {name}:", e)
             if type(ret) is Triangle:
@@ -258,10 +271,16 @@ class Triangle:
             elif len(split[2:]) == 0:
                 return ret
             else:
-                return None
+                try:
+                    return self.invoke(ret, split[1:])
+                except Exception as e:
+                    # TODO: Log that recursive call into triangle failed
+                    return None
         else:
             if len(split) == 1:
                 return data
             elif isinstance(data, Triangle):
                 return data.get(split[1:])
+
+        # TODO: Log that no behaviour is defined for a datum of type T
         return None
