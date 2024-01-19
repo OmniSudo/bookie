@@ -1,8 +1,12 @@
-import uuid
+from typing import cast
 
 from increlance.triangle import Triangle
-from increlance.soul.boot.database import Database
-from increlance.soul.boot.importer import Importer
+from increlance.soul.boot.database.database import Database
+from increlance.soul.boot.importer.importer import Importer
+from increlance.soul.boot.types.types import Types
+
+from increlance.body.body import Body
+from increlance.mind.mind import Mind
 
 
 class Bootloader(Triangle):
@@ -17,14 +21,28 @@ class Bootloader(Triangle):
 
     def boot(self, name: str = None):
         print(f'Booting into "{name}"')
-        self.right_child = Database(self.soul)
-        self.left_child = Importer(self.soul)
+        self.right_child = Database(self)
+        self.left_child = Importer(self)
+        self.top_child = Types(self)
 
-        self_table = self.get('Importer/include')('tables.self_table', 'increlance.soul.boot.tables.self_table')
+        self_table = self.get('Importer/include')(
+            'tables.triangle_table',
+            'increlance.soul.boot.database.tables.triangle_table'
+        )
         tables = self.get('Database/tables')
-        tables.data['self_table'] = self_table.SelfTable(tables)
+        tables.data['triangle'] = self_table.TriangleTable(tables)
         root = self.root()
-        root.uuid = tables.data['self_table'].get_triangle_id(root)
+        root.uuid = tables.data['triangle'].get_id(root)
+
+        root.left_child = Body(root)
+
+        # Init body
+
+        root.right_child = Mind(root)
+
+
+    def register_builtin_types(self):
+        self.get('Types/register')(Triangle)
 
     def save(self):
-        self.get('Database/tables/self_table/save_triangle')(self.root())
+        self.get('Database/tables/triangle/save')(self.root())

@@ -8,7 +8,6 @@ import types
 class Triangle:
     name: str = None
     uuid: uuid
-    parent: Triangle = None
     data: dict = {}
     index: dict = {
         'c': 'c',
@@ -17,39 +16,74 @@ class Triangle:
         'l': 'l'
     }
 
+    def __get_uuid__(self) -> uuid.UUID | None:
+        return self.__uuid__
+
+    def __set_uuid__(self, value: str | uuid.UUID) -> None:
+        if isinstance(value, str):
+            value = uuid.UUID(value)
+
+        if isinstance(value, uuid.UUID):
+            old = self.__uuid__
+            self.__uuid__ = value
+            if old is not None:
+                self.get('/Soul/Bootloader/Database/tables/triangle/change')(old, self.__get_uuid__())
+
+    def __get_parent__(self) -> Triangle:
+        return self.__parent__
+
+    def __set_parent__(self, value: Triangle | str | uuid.UUID) -> None:
+        if isinstance(value, str):
+            value = self.get(value)
+        if isinstance(value, uuid.UUID):
+            # TODO: Repalce with something like /Mind/find/by_uuid?uuid={value}
+            value = self.get(f'/Soul/Bootloader/Database/tables/self/{value}')
+
+        if isinstance(value, Triangle):
+            self.__parent__ = value
+
     def __get_center_child__(self) -> Triangle:
         return self.__center_child__
 
     def __set_center_child__(self, value: Triangle):
         self.__center_child__ = value
-        value.parent = self
+        if value is not None:
+            value.parent = self
 
     def __get_top_child__(self) -> Triangle:
         return self.__top_child__
 
     def __set_top_child__(self, value: Triangle):
         self.__top_child__ = value
-        value.parent = self
+        if value is not None:
+            value.parent = self
 
     def __get_left_child__(self) -> Triangle:
         return self.__left_child__
 
     def __set_left_child__(self, value: Triangle):
         self.__left_child__ = value
-        value.parent = self
+        if value is not None:
+            value.parent = self
 
     def __get_right_child__(self) -> Triangle:
         return self.__right_child__
 
     def __set_right_child__(self, value: Triangle):
         self.__right_child__ = value
-        value.parent = self
+        if value is not None:
+            value.parent = self
+
+    parent = property(__get_parent__, __set_parent__)
 
     center_child: Triangle = property(__get_center_child__, __set_center_child__)
 
     top_child: Triangle = property(__get_top_child__, __set_top_child__)
     left_child: Triangle = property(__get_left_child__, __set_left_child__)
     right_child: Triangle = property(__get_right_child__, __set_right_child__)
+
+    __uuid__: uuid = None
+    __parent__: Triangle = None
 
     __center_child__: Triangle = None
 
@@ -68,7 +102,7 @@ class Triangle:
                 'l': 'l'
             },
             uuid: uuid = None,
-            data: dict =None,
+            data: dict = None,
     ):
         """
         Constructor method for initializing an instance of the class.
@@ -207,13 +241,17 @@ class Triangle:
         if self.data is not None and len(self.data) > 0 and var in self.data:
             return self.invoke(self.data[var], split[1:])
 
-        if (split[0] == self.index['c']) or (self.center_child is not None and (split[0] == self.center_child.uuid or split[0] == self.center_child.name)):
+        if (split[0] == self.index['c']) or (self.center_child is not None and (
+                split[0] == self.center_child.uuid or split[0] == self.center_child.name)):
             return self.center_child.get(split[1:])
-        elif (split[0] == self.index['u']) or (self.top_child is not None and (split[0] == self.top_child.uuid or split[0] == self.top_child.name)):
+        elif (split[0] == self.index['u']) or (
+                self.top_child is not None and (split[0] == self.top_child.uuid or split[0] == self.top_child.name)):
             return self.top_child.get(split[1:])
-        elif (split[0] == self.index['r']) or (self.right_child is not None and (split[0] == self.right_child.uuid or split[0] == self.right_child.name)):
+        elif (split[0] == self.index['r']) or (self.right_child is not None and (
+                split[0] == self.right_child.uuid or split[0] == self.right_child.name)):
             return self.right_child.get(split[1:])
-        elif (split[0] == self.index['l']) or (self.left_child is not None and (split[0] == self.left_child.uuid or split[0] == self.left_child.name)):
+        elif (split[0] == self.index['l']) or (
+                self.left_child is not None and (split[0] == self.left_child.uuid or split[0] == self.left_child.name)):
             return self.left_child.get(split[1:])
         else:
             # TODO: Log that no matching path could be found
@@ -236,7 +274,7 @@ class Triangle:
                 while i < len(args):
                     if len(args[i]) == 0:
                         continue
-                    var = args[i].split('=',1)
+                    var = args[i].split('=', 1)
                     if len(var) != 2:
                         # TODO: Log that arg does not have a value
                         return None
@@ -284,3 +322,10 @@ class Triangle:
 
         # TODO: Log that no behaviour is defined for a datum of type T
         return None
+
+    def save(self) -> bool:
+        save = self.get('/Soul/Bootloader/Database/tables/triangle/save')
+        if save is not None:
+            save(self)
+            return True
+        return False

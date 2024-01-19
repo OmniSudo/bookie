@@ -3,9 +3,9 @@ import importlib
 
 
 class Importer(Triangle):
-    def __init__(self, soul: Triangle):
+    def __init__(self, bootloader: Triangle):
         super().__init__(
-            soul,
+            bootloader,
             self.__class__.__name__
         )
         self.libs = {}

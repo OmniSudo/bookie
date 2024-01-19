@@ -5,9 +5,9 @@ import sqlite3 as sql
 class Database(Triangle):
     connection: sql.Connection = None
 
-    def __init__(self, soul: Triangle):
+    def __init__(self, bootloader: Triangle):
         super().__init__(
-            soul,
+            bootloader,
             self.__class__.__name__
         )
         self.connection = sql.connect('increlance.db')
