@@ -15,7 +15,7 @@ def digest():
     author = sys.argv[3] if len(sys.argv) > 3 else input("Author: ")
     owner = sys.argv[4] if len(sys.argv) > 4 else input("Owner: ")
 
-    if not os.path.isdir(f"../../{owner}/Books/Content/{title} - {author}"):
+    if not os.path.isdir(f"../{owner}/Books/Content/{title} - {author}"):
         print("Book not found")
         return
 
@@ -28,7 +28,7 @@ def digest():
 
     series = series_table.insert_series(db, title, author)
 
-    book_names = book_table.get_books_in_filesystem(f"../../{owner}/Books/Content/{title} - {author}")
+    book_names = book_table.get_books_in_filesystem(f"../{owner}/Books/Content/{title} - {author}")
     for book_data in book_names:
         book_id = book_data[0]
         book = book_data[1]

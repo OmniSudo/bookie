@@ -1,5 +1,6 @@
 from increlance.triangle import Triangle
-from increlance.soul.database import Database
+from increlance.soul.boot.database import Database
+from increlance.soul.boot.importer import Importer
 
 
 class Bootloader(Triangle):
@@ -15,8 +16,4 @@ class Bootloader(Triangle):
     def boot(self, name: str = None):
         print(f'Booting into "{name}"')
         self.right_child = Database(self.soul)
-        res = self.get('Database/query?sql="SELECT * FROM series;"')
-        if res is None:
-            print("fail")
-        else:
-            print(res)
+        self.left_child = Importer(self.soul)

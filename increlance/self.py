@@ -50,3 +50,4 @@ class Self(Triangle):
 
         self.soul = Soul(self)
         self.get(f'/Soul/Bootloader/boot?name="{name}"')
+
