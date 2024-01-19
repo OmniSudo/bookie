@@ -192,11 +192,11 @@ class Triangle:
             split = split[1:]
 
         if split[0].startswith("..") and len(split[0]) == 2:
-            return self.parent
+            return self.parent.get(split[1:]) if self.parent is not None else None
         elif split[0].startswith(".") and len(split[0]) == 1:
             return self.get(split[1:])
 
-        var = split[0].split('?')[0]
+        var = split[0].split('?', 1)[0]
         if hasattr( self, var ):
             return self.invoke(getattr(self, var), split)
         if self.data is not None and len(self.data) > 0 and var in self.data:
@@ -214,7 +214,7 @@ class Triangle:
             return None
 
     def invoke(self, data, split) -> object | None:
-        split = split[0].split('?')
+        split = split[0].split('?', 1)
         name = split[0]
         args = split[1] if len(split) > 1 else None
 
@@ -231,7 +231,7 @@ class Triangle:
                 while i < len(args):
                     if len(args[i]) == 0:
                         continue
-                    var = args[i].split('=')
+                    var = args[i].split('=',1)
                     if len(var) != 2:
                         return None
                     if var[1].startswith('\'') or var[1].startswith('\"'):
@@ -248,7 +248,11 @@ class Triangle:
                     i += 1
                     kwargs[var[0].strip()] = (var[1])  # TODO: root lookup object
 
-            ret = data(**kwargs)  # TODO: Process with mind
+            ret = None
+            try:
+                ret = data(**kwargs)  # TODO: Process with mind
+            except Exception as e:
+                print(f"Failed to invoke {name}:", e)
             if type(ret) is Triangle:
                 return ret.get(split[1:])
             elif len(split[2:]) == 0:
