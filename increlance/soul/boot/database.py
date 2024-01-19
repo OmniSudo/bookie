@@ -39,5 +39,6 @@ class Database(Triangle):
             print(f'Failed to execute SQL query: {e}')
             return None
 
-    def load(self, table: str) -> Triangle | None:
+    def add_table(self, table: Triangle) -> None:
+        self.center_child.data[table.name] = table
         return None

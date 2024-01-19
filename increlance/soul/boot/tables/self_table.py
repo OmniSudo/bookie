@@ -50,7 +50,7 @@ class SelfTable(Triangle):
                 constraint self_triangle_uuid_fk
                     references triangle,
             constraint self_pk
-                primary key (self_uuid, this_uuid)
+                primary key (this_uuid)
         );
         '""")
         self.db.connection.commit()
