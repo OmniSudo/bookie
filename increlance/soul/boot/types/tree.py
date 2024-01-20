@@ -28,28 +28,8 @@ class Tree(Triangle):
         tri = self.center_child
         i = 0
         while i < len(var) and tri is not None:
-            lenvar = len(var) - i
-            if tri.top_child is not None:
-                skip = len(tri.top_child.name)
-                if tri.top_child.name == var[i:skip if skip < lenvar else lenvar]:
-                    if lenvar > skip:
-                        tri = tri.top_child
-                        i += skip
-                    elif lenvar == skip:
-                        tri = tri.center_child
-                        return tri.center_child.get(split[1:]) if tri.center_child is not None else None
-                elif tri.right_child is not None:
-                    if tri.top_child.name < var[i:skip]:
-                        tri = tri.right_child
-                elif tri.left_child is not None:
-                    if tri.top_child.name > var[i:skip]:
-                        tri = tri.left_child
-                else:
-                    # Invalid path
-                    return None
-            else:
-                # Invalid path
-                return None
+            len_var = len(var) - i
+            # TODO
 
         if tri is not None:
             return tri.get(split[1:])
@@ -66,42 +46,64 @@ class Tree(Triangle):
                     tri,
                     path[i:len_remaining]
                 )
-                tri.center_child = value
+                tri.top_child.center_child = value
                 return value
             else:
                 top_child_name_len = len(tri.top_child.name)
                 min_len = min(len_remaining, top_child_name_len)
                 text = tri.top_child.name[:min_len]
-                if path[i:min_len].startswith(text):
+                partial_path = path[i:min_len]  # Introduce a variable for path[i:min_len]
+                if partial_path.startswith(text):
                     if len_remaining == top_child_name_len:
                         tri = tri.top_child
                         tri.center_child = value
                         return value
                     elif len_remaining < top_child_name_len:
-                        new = tri.top_child.name[min_len + 1:]
+                        new = tri.top_child.name[min_len:]
                         prev = tri.top_child
+
                         tri.top_child = Triangle(
                             tri,
                             text
                         )
                         tri.center_child = value
-                        tri.top_child = prev
+
+                        prev.name = new
+                        tri.top_child.top_child = prev
 
                         tri.left_child = prev.left_child
-                        tri.top_child.left_child = None
+                        tri.top_child.top_child.left_child = None
 
                         tri.right_child = prev.right_child
-                        tri.top_child.right_child = None
-                        tri.top_child.name = new
+                        tri.top_child.top_child.right_child = None
 
                         tri.top_child.center_child = value
                         return value
                     else:  # len_remaining > top_child_name_len
-                        pass
-                        i += min_len
-                        # TODO: Finish
-                if False:
-                    pass
-
+                        i += top_child_name_len
+                        tri = tri.top_child
+                        continue
+                elif partial_path > text:
+                    if tri.right_child is not None:
+                        tri = tri.right_child
+                        continue
+                    else:
+                        tri.right_child = Triangle(
+                            tri,
+                            path[i:]
+                        )
+                        tri.right_child.center_child = value
+                        return value
+                elif partial_path < text:
+                    if tri.left_child is not None:
+                        tri = tri.left_child
+                        continue
+                    else:
+                        tri.left_child = Triangle(
+                            tri,
+                            path[i:]
+                        )
+                        tri.left_child.center_child = value
+                        return value
 
         return None
