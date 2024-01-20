@@ -58,8 +58,50 @@ class Tree(Triangle):
     def set(self, path: str, value: Triangle) -> Triangle:
         tri = self.center_child
         i = 0
-        while i < len(path) - 1:
-            pathlen = len(path) - i
-            break
+        len_path = len(path)
+        while i < len_path:
+            len_remaining = len_path - i
+            if tri.top_child is None:
+                tri.top_child = Triangle(
+                    tri,
+                    path[i:len_remaining]
+                )
+                tri.center_child = value
+                return value
+            else:
+                top_child_name_len = len(tri.top_child.name)
+                min_len = min(len_remaining, top_child_name_len)
+                text = tri.top_child.name[:min_len]
+                if path[i:min_len].startswith(text):
+                    if len_remaining == top_child_name_len:
+                        tri = tri.top_child
+                        tri.center_child = value
+                        return value
+                    elif len_remaining < top_child_name_len:
+                        new = tri.top_child.name[min_len + 1:]
+                        prev = tri.top_child
+                        tri.top_child = Triangle(
+                            tri,
+                            text
+                        )
+                        tri.center_child = value
+                        tri.top_child = prev
+
+                        tri.left_child = prev.left_child
+                        tri.top_child.left_child = None
+
+                        tri.right_child = prev.right_child
+                        tri.top_child.right_child = None
+                        tri.top_child.name = new
+
+                        tri.top_child.center_child = value
+                        return value
+                    else:  # len_remaining > top_child_name_len
+                        pass
+                        i += min_len
+                        # TODO: Finish
+                if False:
+                    pass
+
 
         return None
