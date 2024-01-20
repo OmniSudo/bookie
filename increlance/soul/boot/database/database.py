@@ -36,7 +36,7 @@ class Database(Triangle):
                 return []
         except Exception as e:
             # TODO: Handle exception using mind
-            print(f'Failed to execute SQL query: {e}')
+            print(f'Failed to execute SQL query "{sql}": {e}')
             return None
 
     def add_table(self, table: Triangle) -> None:

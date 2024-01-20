@@ -19,19 +19,19 @@ class Self(Triangle):
     soul = property(__get__soul__, __set__soul__)
 
     def __get__mind__(self):
-        return self.left_child
+        return self.right_child
 
     def __set__mind__(self, mind: Mind):
-        self.left_child = mind
+        self.right_child = mind
 
     # Thinking / processing center of the Self
     mind = property(__get__mind__, __set__mind__)
 
     def __get__body__(self):
-        return self.right_child
+        return self.left_child
 
     def __set__body__(self, body: Body):
-        self.right_child = body
+        self.left_child = body
 
     # Any peripherals that may be attached to the Self
     body = property(__get__body__, __set__body__)

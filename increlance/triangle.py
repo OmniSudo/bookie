@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 from inspect import signature
-import uuid as uuid
+import uuid as id
 import types
 
 
 class Triangle:
     name: str = None
-    uuid: uuid
     data: dict = {}
     index: dict = {
         'c': 'c',
@@ -16,14 +15,14 @@ class Triangle:
         'l': 'l'
     }
 
-    def __get_uuid__(self) -> uuid.UUID | None:
+    def __get_uuid__(self) -> id.UUID | None:
         return self.__uuid__
 
-    def __set_uuid__(self, value: str | uuid.UUID) -> None:
+    def __set_uuid__(self, value: str | id.UUID) -> None:
         if isinstance(value, str):
-            value = uuid.UUID(value)
+            value = id.UUID(value)
 
-        if isinstance(value, uuid.UUID):
+        if isinstance(value, id.UUID):
             old = self.__uuid__
             self.__uuid__ = value
             if old is not None:
@@ -32,10 +31,10 @@ class Triangle:
     def __get_parent__(self) -> Triangle:
         return self.__parent__
 
-    def __set_parent__(self, value: Triangle | str | uuid.UUID) -> None:
+    def __set_parent__(self, value: Triangle | str | id.UUID) -> None:
         if isinstance(value, str):
             value = self.get(value)
-        if isinstance(value, uuid.UUID):
+        if isinstance(value, id.UUID):
             # TODO: Repalce with something like /Mind/find/by_uuid?uuid={value}
             value = self.get(f'/Soul/Bootloader/Database/tables/self/{value}')
 
@@ -74,6 +73,7 @@ class Triangle:
         if value is not None:
             value.parent = self
 
+    uuid = property(__get_uuid__, __set_uuid__)
     parent = property(__get_parent__, __set_parent__)
 
     center_child: Triangle = property(__get_center_child__, __set_center_child__)
@@ -101,7 +101,7 @@ class Triangle:
                 'r': 'r',
                 'l': 'l'
             },
-            uuid: uuid = None,
+            uuid: bool | id.UUID = False,
             data: dict = None,
     ):
         """
@@ -110,16 +110,26 @@ class Triangle:
         Parameters:
             parent (Triangle, optional): Parent triangle object. Defaults to None.
             name (str, optional): Name of the instance. Defaults to an empty string.
-            data (map, optional): Data associated with the instance. Defaults to None.
-            index (map, optional): Mapping of index values. Defaults to {'c': 'c', 'u': 'u', 'r': 'r', 'l': 'l'}.
-            uuid (uuid, optional): Unique identifier for the instance. Defaults to None.
+            data (dict, optional): Data associated with the instance. Defaults to None.
+            index (dict, optional): Mapping of index values. Defaults to {'c': 'c', 'u': 'u', 'r': 'r', 'l': 'l'}.
+            uuid (bool, uuid, optional): Unique identifier for the instance. Defaults to False to imply a unique identifier will not be generated.
         """
+        self.parent = parent
+        self.name = name
+
         if data is None:
             data = dict()
         if data is None:
             data = {}
-        self.uuid = uuid
-        self.name = name
+
+        if isinstance(uuid, id.UUID):
+            self.__uuid__ = uuid
+        elif uuid:
+            get = self.get( "/Soul/Bootloader/Database/tables/triangle/get_id")
+            if get is not None:
+                self.__uuid__ = get(self)
+            else:
+                self.uuid = id.uuid4()
 
         indexes = ['c', 'u', 'r', 'l']
         for i in indexes:
@@ -128,7 +138,6 @@ class Triangle:
             else:
                 self.index[i] = index[i]
 
-        self.parent = parent
         self.data = data if data is not None else self.data
 
     def __eq__(self, other):

@@ -62,7 +62,7 @@ class TriangleTable(Triangle):
         root = value.root()
         self_hex = root.uuid.hex if root.uuid is not None else ''
         res = self.db.get(
-            f"query?sql='SELECT triangle.uuid as uuid FROM self JOIN triangle ON ((:self_uuid IS NULL OR :self_uuid == '') OR self.self_uuid = :self_uuid) AND self.self_uuid = triangle.uuid AND type = :type AND name = :name;'&self_uuid='{self_hex}'&type='{type(value).__name__}'&name='{value.name}'"
+            f"query?sql='SELECT triangle.uuid as uuid FROM self JOIN triangle ON ((:self_uuid IS NULL OR :self_uuid == '') or self.self_uuid = :self_uuid) AND self.this_uuid = triangle.uuid AND type = :type AND name = :name;'&self_uuid='{self_hex}'&type='{type(value).__name__}'&name='{value.name}'"
         )
 
         if res is None or len(res) == 0:
@@ -74,7 +74,7 @@ class TriangleTable(Triangle):
             f"query?sql='UPDATE self SET this_uuid = :new_uuid WHERE this_uuid = :old_uuid;'&new_uuid='{new.hex}'&old_uuid='{old.hex}'"
         )
         self.db.get(
-            f"query?sql='UPDATE triangle SET uuid = :uuid WHERE uuid = :old_uuid;'&new_uuid='{new.hex}'&old_uuid='{old.hex}'"
+            f"query?sql='UPDATE triangle SET uuid = :new_uuid WHERE uuid = :old_uuid;'&new_uuid='{new.hex}'&old_uuid='{old.hex}'"
         )
 
 
@@ -114,17 +114,24 @@ class TriangleTable(Triangle):
         left_uuid = ''
 
         if value.center_child is not None:
-            center_uuid = value.center_child.uuid.hex if value.center_child.uuid is not None else center_uuid
+            if value.center_child.uuid is not None:
+                center_uuid = value.center_child.uuid.hex
+                self.save(value.center_child)
         if value.top_child is not None:
-            up_uuid = value.top_child.uuid.hex if value.top_child.uuid is not None else up_uuid
+            if value.top_child.uuid is not None:
+                top_uuid = value.top_child.uuid.hex
+                self.save(value.top_child)
         if value.right_child is not None:
-            right_uuid = value.right_child.uuid.hex if value.right_child.uuid is not None else right_uuid
+            if value.right_child.uuid is not None:
+                right_uuid = value.right_child.uuid.hex
+                self.save(value.right_child)
         if value.left_child is not None:
-            left_uuid = value.left_child.uuid.hex if value.left_child.uuid is not None else left_uuid
-
+            if value.left_child.uuid is not None:
+                left_uuid = value.left_child.uuid.hex
+                self.save(value.left_child)
 
         self.db.get(
-            f"query?sql='UPDATE triangle SET center = :center, up = :up, right = :right, left = :left;'&center='{center_uuid}'&up='{up_uuid}'&right='{right_uuid}'&left='{left_uuid}'"
+            f"query?sql='UPDATE triangle SET center = :center, up = :up, right = :right, left = :left WHERE uuid = :uuid;'&uuid='{value.uuid.hex}'&center='{center_uuid}'&up='{up_uuid}'&right='{right_uuid}'&left='{left_uuid}'"
         )
 
         self.db.connection.commit()
