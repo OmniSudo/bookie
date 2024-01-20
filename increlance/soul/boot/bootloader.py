@@ -47,6 +47,7 @@ class Bootloader(Triangle):
     def register_builtin_types(self):
         register_type = self.get('Types/register')
         register_type(Triangle)
+        register_type(Tree)
 
     def init_body(self):
         root = self.root()
