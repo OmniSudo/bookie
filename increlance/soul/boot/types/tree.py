@@ -24,12 +24,45 @@ class Tree(Triangle):
         elif split[0].startswith(".") and len(split[0]) == 1:
             return self.get(split[1:])
 
-        var = split[0].split('?', 1)[0]
+        path = split[0].split('?', 1)[0]
         tri = self.center_child
         i = 0
-        while i < len(var) and tri is not None:
-            len_var = len(var) - i
+        while i < len(path) and tri is not None:
+            len_remaining = len(path) - i
             # TODO
+            if tri is None:
+                break
+
+            if len_remaining == 0:
+                return tri.center_child.get(split[1:]) if tri.center_child is not None else None
+            elif tri.top_child is None: # and len_remaining > 0
+                return None
+            else: # tri.top_child is not None and len_remaining > 0
+                len_top_child_name = len(tri.top_child.name)
+                min_len = min(len_remaining, len_top_child_name)
+                text = tri.top_child.name[:min_len]
+                path_sample = path[i:min_len]
+                if text.startswith(path_sample):
+                    if len_remaining == len_top_child_name:
+                        return tri.top_child.center_child
+                    elif len_remaining > len_top_child_name:
+                        i += len_top_child_name
+                        tri = tri.top_child
+                        continue
+                    else: # len_remaining < len_top_child_name
+                        return None
+                elif text < path_sample:
+                    if tri.right_child is not None:
+                        tri = tri.right_child
+                        continue
+                    else:
+                        return None
+                else: # text > path_sample
+                    if tri.left_child is not None:
+                        tri = tri.left_child
+                        continue
+                    else:
+                        return None
 
         if tri is not None:
             return tri.get(split[1:])
@@ -44,7 +77,7 @@ class Tree(Triangle):
             if tri.top_child is None:
                 tri.top_child = Triangle(
                     tri,
-                    path[i:len_remaining]
+                    path[i:]
                 )
                 tri.top_child.center_child = value
                 return value
@@ -76,7 +109,6 @@ class Tree(Triangle):
 
                         tri.right_child = prev.right_child
                         tri.top_child.top_child.right_child = None
-
                         tri.top_child.center_child = value
                         return value
                     else:  # len_remaining > top_child_name_len
@@ -92,7 +124,11 @@ class Tree(Triangle):
                             tri,
                             path[i:]
                         )
-                        tri.right_child.center_child = value
+                        tri.right_child.top_child = Triangle(
+                            tri.right_child,
+                            path[i:]
+                        )
+                        tri.right_child.top_child.center_child = value
                         return value
                 elif partial_path < text:
                     if tri.left_child is not None:
@@ -103,7 +139,11 @@ class Tree(Triangle):
                             tri,
                             path[i:]
                         )
-                        tri.left_child.center_child = value
+                        tri.left_child.top_child = Triangle(
+                            tri.left_child,
+                            path[i:]
+                        )
+                        tri.left_child.top_child.center_child = value
                         return value
 
         return None

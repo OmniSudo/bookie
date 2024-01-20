@@ -44,21 +44,6 @@ class Bootloader(Triangle):
         self.init_body()
         self.init_mind()
 
-        tree = Tree(None, "")
-        tree.set("Gbcd", root.mind)
-        tree.set("Gb", root.body)
-        tree.set("Cde", root.soul)
-        tree.set("Hmc", root)
-        tree.set("Hmce", self)
-
-        print(tree.get("Gbcd"))
-        print(tree.get("Gb"))
-        print(tree.get("Cde"))
-        print(tree.get("Hmc"))
-        print(tree.get("Hmce"))
-
-        # Init mind
-
     def register_builtin_types(self):
         register_type = self.get('Types/register')
         register_type(Triangle)
