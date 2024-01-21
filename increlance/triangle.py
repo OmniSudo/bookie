@@ -338,3 +338,10 @@ class Triangle:
             save(self)
             return True
         return False
+
+    def load(self) -> bool:
+        load = self.get('Soul/Bootloader/Database/tables/triangle/load')
+        if load is not None:
+            load(self)
+            return True
+        return False

@@ -69,6 +69,9 @@ class TriangleTable(Triangle):
             return uuid.uuid4()
         return uuid.UUID(res[0]['uuid'])
 
+    def register(self, triangle: Triangle):
+        self.data[triangle.uuid] = triangle
+
     def change(self, old: uuid.UUID, new: uuid.UUID) -> None:
         self.db.get(
             f"query?sql='UPDATE self SET this_uuid = :new_uuid WHERE this_uuid = :old_uuid;'&new_uuid='{new.hex}'&old_uuid='{old.hex}'"
@@ -135,3 +138,49 @@ class TriangleTable(Triangle):
         )
 
         self.db.connection.commit()
+
+    def load(self, uuid: uuid.UUID):
+        """
+        Loads a triangle object from the database using the given UUID.
+
+        :param uuid: The UUID of the triangle object to load.
+        :returns: The loaded triangle object or None if no such triangle object exists
+            Does not have a parent set
+        """
+        triangle = self.data[uuid] if uuid in self.data else None
+        res = self.db.get(
+            f"query?sql='SELECT * FROM triangle WHERE uuid = :uuid;'&uuid='{uuid.hex}'"
+        )
+        if res is None or len(res) == 0:
+            return triangle
+        data = res[0]
+        find = self.get('/Soul/Bootloader/Types/find')
+        if triangle is None:
+            type = Triangle
+            if find is not None:
+                type = find(data['type'])
+
+            triangle = type(
+                parent=None,
+                name=data['name'],
+                uuid=uuid.UUID(data['uuid'])
+            )
+
+        center_uuid = data['center']
+        up_uuid = data['up']
+        right_uuid = data['right']
+        left_uuid = data['left']
+
+        if center_uuid and not (triangle.center_child is not None and triangle.center_child.uuid == center_uuid):
+            center_child = self.load(uuid.UUID(center_uuid))
+            triangle.center_child = center_child
+        if up_uuid and not (triangle.top_child is not None and triangle.top_child.uuid == up_uuid):
+            top_child = self.load(uuid.UUID(up_uuid))
+            triangle.top_child = top_child
+        if right_uuid and not (triangle.right_child is not None and triangle.right_child.uuid == right_uuid):
+            right_child = self.load(uuid.UUID(right_uuid))
+            triangle.right_child = right_child
+        if left_uuid and not (triangle.left_child is not None and triangle.left_child.uuid == left_uuid):
+            left_child = self.load(uuid.UUID(left_uuid))
+            triangle.left_child = left_child
+        return triangle

@@ -10,7 +10,7 @@ def run():
 
 
 def __main__():
-    if len(sys.argv) > 1 and sys.argv[1] == '--digest':
+    if len(sys.argv) > 1 and sys.argv[1] == '--comprehend':
         digest_books()
         return
 
