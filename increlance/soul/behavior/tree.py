@@ -29,10 +29,6 @@ class Tree(Triangle):
         i = 0
         while i < len(path) and tri is not None:
             len_remaining = len(path) - i
-            # TODO
-            if tri is None:
-                break
-
             if len_remaining == 0:
                 return tri.center_child.get(split[1:]) if tri.center_child is not None else None
             elif tri.top_child is None: # and len_remaining > 0

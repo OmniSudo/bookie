@@ -10,7 +10,9 @@ class Importer(Triangle):
         )
         self.libs = {}
 
-    def include(self, name: str, path: str):
+    def include(self, name: str, path: str = None):
+        if path is None:
+            path = name
         if name in self.libs:
             return self.libs[name]
         self.libs[name] = importlib.import_module(path)

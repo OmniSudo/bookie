@@ -45,6 +45,8 @@ class Triangle:
         return self.__center_child__
 
     def __set_center_child__(self, value: Triangle):
+        if self.__center_child__ is not None:
+            self.__center_child__.parent = None
         self.__center_child__ = value
         if value is not None:
             value.parent = self
@@ -53,6 +55,8 @@ class Triangle:
         return self.__top_child__
 
     def __set_top_child__(self, value: Triangle):
+        if self.__top_child__ is not None:
+            self.__top_child__.parent = None
         self.__top_child__ = value
         if value is not None:
             value.parent = self
@@ -61,6 +65,8 @@ class Triangle:
         return self.__left_child__
 
     def __set_left_child__(self, value: Triangle):
+        if self.__left_child__ is not None:
+            self.__left_child__.parent = None
         self.__left_child__ = value
         if value is not None:
             value.parent = self
@@ -69,6 +75,8 @@ class Triangle:
         return self.__right_child__
 
     def __set_right_child__(self, value: Triangle):
+        if self.__right_child__ is not None:
+            self.__right_child__.parent = None
         self.__right_child__ = value
         if value is not None:
             value.parent = self
@@ -300,8 +308,7 @@ class Triangle:
 
                         var[1] = var[1][1:-1]
                     i += 1
-                    kwargs[var[0].strip()] = (var[1])  # TODO: root lookup object
-
+                    kwargs[var[0].strip()] = (var[1]) # TODO: root lookup object
             ret = None
             try:
                 argc = len(signature(data).parameters)

@@ -1,6 +1,3 @@
-import uuid
-from typing import cast
-
 from increlance.triangle import Triangle
 from increlance.soul.boot.database.database import Database
 from increlance.soul.boot.importer.importer import Importer
@@ -9,7 +6,7 @@ from increlance.soul.boot.types.types import Types
 from increlance.body.body import Body
 from increlance.mind.mind import Mind
 
-from increlance.soul.boot.types.tree import Tree
+from increlance.soul.behavior.tree import Tree
 
 
 class Bootloader(Triangle):
@@ -24,23 +21,8 @@ class Bootloader(Triangle):
 
     def boot(self, name: str = None):
         print(f'Booting into "{name}"')
-        self.right_child = Database(self)
-        self.left_child = Importer(self)
-        self.top_child = Types(self)
 
-        include = self.get('Importer/include')
-        table = include(
-            'tables.triangle_table',
-            'increlance.soul.boot.database.tables.triangle_table'
-        )
-        tables = self.get('Database/tables')
-        tables.data['triangle'] = table.TriangleTable(tables)
-
-        root = self.root()
-        root.uuid = tables.data['triangle'].get_id(root)
-
-        self.register_builtin_types()
-
+        self.init_soul()
         self.init_body()
         self.init_mind()
 
@@ -64,10 +46,14 @@ class Bootloader(Triangle):
 
         include = self.get('Importer/include')
         console = include(
-            'body.input.console',
-            'increlance.body.input.console'
+            'increlance.body.input.text.console'
         )
-        root.body.get('Input').center_child = console.Console(root.left_child)
+        input_triangle = root.body.get('Input')
+        input_triangle.right_child = Triangle(
+            input_triangle,
+            'Text'
+        )
+        input_triangle.right_child.top_child = console.Console(root.left_child)
 
     def init_mind(self):
         root = self.root()
@@ -77,3 +63,21 @@ class Bootloader(Triangle):
 
     def save(self):
         self.get('Database/tables/triangle/save')(self.root())
+
+    def init_soul(self):
+        self.right_child = Database(self)
+        self.left_child = Importer(self)
+        self.top_child = Types(self)
+
+        include = self.get('Importer/include')
+        table = include(
+            'tables.triangle_table',
+            'increlance.soul.boot.database.tables.triangle_table'
+        )
+        tables = self.get('Database/tables')
+        tables.data['triangle'] = table.TriangleTable(tables)
+
+        root = self.root()
+        root.uuid = tables.data['triangle'].get_id(root)
+
+        self.register_builtin_types()
