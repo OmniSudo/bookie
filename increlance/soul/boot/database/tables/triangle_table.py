@@ -1,6 +1,6 @@
 import uuid
 
-from increlance.triangle import Triangle
+from tracy.triangle import Triangle
 from increlance.soul.boot.database.database import Database
 from typing import cast
 

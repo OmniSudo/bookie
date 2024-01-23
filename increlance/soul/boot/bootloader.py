@@ -1,12 +1,12 @@
-from increlance.triangle import Triangle
+import sys
+
+from tracy.triangle import Triangle
 from increlance.soul.boot.database.database import Database
 from increlance.soul.boot.importer.importer import Importer
 from increlance.soul.boot.types.types import Types
 
 from increlance.body.body import Body
 from increlance.mind.mind import Mind
-
-from increlance.soul.behavior.tree import Tree
 
 
 class Bootloader(Triangle):
@@ -19,65 +19,54 @@ class Bootloader(Triangle):
         )
         self.soul = soul
 
-    def boot(self, name: str = None):
+    def do(self, args: Triangle) -> Triangle:
+        name = sys.argv[1] if len(sys.argv) > 1 else "Unknown"
         print(f'Booting into "{name}"')
 
         self.init_soul()
         self.init_body()
         self.init_mind()
+        self.init_root(self.root())
 
-    def register_builtin_types(self):
-        register_type = self.get('Types/register')
-        register_type(Triangle)
-        register_type(Tree)
-
-    def init_body(self):
         root = self.root()
-        root.body = Body(root)
+        root.do(self.create_thought(root=root))
 
-        root.body.right_child = Triangle(
-            root.body,
-            'Input'
-        )
-        root.body.left_child = Triangle(
-            root.body,
-            'Output'
-        )
+        return self
 
-        include = self.get('Importer/include')
-        console = include(
-            'increlance.body.input.text.console'
-        )
-        input_triangle = root.body.get('Input')
-        input_triangle.right_child = Triangle(
-            input_triangle,
-            'Text'
-        )
-        input_triangle.right_child.top_child = console.Console(root.left_child)
+    def __get_database__(self) -> Database:
+        return self.right_child
 
-    def init_mind(self):
-        root = self.root()
-        include = self.get('Importer/include')
+    def __get_importer__(self) -> Importer:
+        return self.left_child
 
-        root.mind = Mind(root)
+    def __get_types__(self) -> Types:
+        return self.top_child
 
-    def save(self):
-        self.get('Database/tables/triangle/save')(self.root())
+    database = property(__get_database__)
+    importer = property(__get_importer__)
+    types = property(__get_types__)
 
     def init_soul(self):
         self.right_child = Database(self)
         self.left_child = Importer(self)
         self.top_child = Types(self)
 
-        include = self.get('Importer/include')
-        table = include(
-            'tables.triangle_table',
-            'increlance.soul.boot.database.tables.triangle_table'
-        )
-        tables = self.get('Database/tables')
-        tables.data['triangle'] = table.TriangleTable(tables)
-
+    def init_body(self):
         root = self.root()
-        root.uuid = tables.data['triangle'].get_id(root)
+        root.body = Body(root)
 
-        self.register_builtin_types()
+    def init_mind(self):
+        root = self.root()
+        root.mind = Mind(root)
+
+    def create_thought(self, **kwargs):
+        thought = Triangle(self.soul, 'Thought')
+        thought.data = kwargs
+        return thought
+
+    def init_root(self, root: Triangle):
+        def do(args: Triangle) -> Triangle:
+            return args
+
+        root.do = do
+        pass

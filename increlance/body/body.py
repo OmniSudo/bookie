@@ -1,4 +1,4 @@
-from increlance.triangle import Triangle
+from tracy.triangle import Triangle
 
 
 class Body(Triangle):

@@ -2,7 +2,7 @@ from increlance.soul import *
 from increlance.mind import *
 from increlance.body import *
 
-from increlance.triangle import Triangle
+from tracy.triangle import Triangle
 
 
 class Self(Triangle):
@@ -49,6 +49,6 @@ class Self(Triangle):
         )
 
         self.soul = Soul(self)
-        self.get(f'/Soul/Bootloader/boot')(name)
-        self.save()
+        self.soul.boot.do(None)
+
 

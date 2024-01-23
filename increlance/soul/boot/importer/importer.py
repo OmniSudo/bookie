@@ -1,4 +1,4 @@
-from increlance.triangle import Triangle
+from tracy.triangle import Triangle
 import importlib
 
 
@@ -10,11 +10,13 @@ class Importer(Triangle):
         )
         self.libs = {}
 
-    def include(self, name: str, path: str = None):
-        if path is None:
-            path = name
-        if name in self.libs:
-            return self.libs[name]
-        self.libs[name] = importlib.import_module(path)
-        return self.libs[name]
+    def include(self, path: str):
+        if path in self.libs:
+            return self.libs[path]
+        self.libs[path] = importlib.import_module(path)
+        return self.libs[path]
 
+    def do(self, args: Triangle) -> Triangle:
+        path = args.data['import']
+        lib = self.include(path)
+        args[path] = lib

@@ -1,4 +1,4 @@
-from increlance.triangle import Triangle
+from tracy.triangle import Triangle
 import sqlite3 as sql
 
 
@@ -42,3 +42,8 @@ class Database(Triangle):
     def add_table(self, table: Triangle) -> None:
         self.center_child.data[table.name] = table
         return None
+
+    def do(self, args: Triangle) -> Triangle:
+        sql = self.top_child.name
+        kwargs = self.center_child.data
+        args.data['query'] = self.query(sql, **kwargs)

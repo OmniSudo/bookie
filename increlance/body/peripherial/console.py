@@ -2,8 +2,10 @@ from tracy.triangle import Triangle
 
 
 class Console(Triangle):
-    def __init__(self, root: Triangle):
+    def __init__(self):
         super().__init__(
-            root,
-            self.__class__.__name__
+
         )
+
+    def do(self, args: Triangle):
+        self.root().do()

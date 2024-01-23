@@ -1,20 +1,21 @@
 from tracy.triangle import Triangle
-from increlance.soul.boot.bootloader import Bootloader
+from tracy.core.bootloader import Bootloader
 
 
-class Soul(Triangle):
+class Core(Triangle):
     def __get_boot__(self):
         return self.top_child
 
-    def __set_boot__(self, value: Bootloader):
+    def __set_boot__(self, value: Bootloader ):
         self.top_child = value
 
     boot = property(__get_boot__, __set_boot__)
 
     def __init__(self, root: Triangle):
-        super().__init__(
-            root,
-            self.__class__.__name__
-        )
+        super().__init__(root, "core", False)
 
+    def do(self, args: Triangle) -> Triangle:
         self.boot = Bootloader(self)
+        self.boot.do(args)
+
+        return self
