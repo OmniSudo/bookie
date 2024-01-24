@@ -73,6 +73,7 @@ class Triangle:
             value.parent = self
 
     name: str = None
+    data: dict = {}
     uuid = property(__get_uuid__, __set_uuid__)
     parent = property(__get_parent__, __set_parent__)
 
@@ -120,4 +121,4 @@ class Triangle:
 
     def do(self, args: Triangle) -> Triangle:
         pass
-        return args
+        return None
